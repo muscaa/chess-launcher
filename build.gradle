@@ -12,6 +12,7 @@ allprojects {
 
 configure(subprojects) {
 	apply plugin: "java-library"
+	apply plugin: "maven-publish"
 }
 
 subprojects {
@@ -20,8 +21,6 @@ subprojects {
     	
     	sourceCompatibility = 17
 		targetCompatibility = 8
-    	
-    	version = "$projectVersion"
     	
         repositories {
 			mavenCentral()
@@ -48,6 +47,19 @@ subprojects {
 			dependencies {
 				exclude("META-INF/INDEX.LIST", "META-INF/maven/**")
 			}
+		}
+		
+		java {
+			withSourcesJar()
+			withJavadocJar()
+		}
+		
+		publishing {
+		    publications {
+		        maven(MavenPublication) {
+					from components.java
+		        }
+		    }
 		}
     }
 }
