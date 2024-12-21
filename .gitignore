@@ -1,0 +1,24 @@
+## Build:
+/core/bin/
+/core/build/
+/updater/bin/
+/updater/build/
+
+## Gradle:
+.gradle/
+
+## Java:
+*.class
+
+## IntelliJ:
+.idea/
+
+## Eclipse:
+.settings/
+.classpath
+.project
+*.launch
+
+## OS:
+.DS_Store
+Thumbs.db

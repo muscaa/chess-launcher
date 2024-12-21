@@ -1,0 +1,53 @@
+allprojects {
+	apply plugin: "eclipse"
+	apply plugin: "idea"
+	
+	idea {
+		module {
+			outputDir file("build/classes/java/main")
+			testOutputDir file("build/classes/java/test")
+		}
+	}
+}
+
+configure(subprojects) {
+	apply plugin: "java-library"
+}
+
+subprojects {
+    beforeEvaluate {
+    	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
+    	
+    	sourceCompatibility = 17
+		targetCompatibility = 8
+    	
+    	version = "$projectVersion"
+    	
+        repositories {
+			mavenCentral()
+			maven { url "https://jitpack.io" }
+		}
+    }
+    
+    afterEvaluate {
+        eclipse.project.name = "${projectName}-${subName}"
+        
+		jar {
+			archiveFileName.set("${subName}-${version}.jar")
+			
+			duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+			
+			dependsOn configurations.runtimeClasspath
+			from {
+				configurations.runtimeClasspath.collect {
+					it.isDirectory() ? it : zipTree(it)
+				}
+			}
+			
+			exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+			dependencies {
+				exclude("META-INF/INDEX.LIST", "META-INF/maven/**")
+			}
+		}
+    }
+}

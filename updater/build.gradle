@@ -1,0 +1,20 @@
+plugins {
+	id "application"
+}
+
+ext.subName = "updater"
+
+mainClassName = "muscaa.chess.launcher.updater.main.Main"
+application.setMainClass(mainClassName)
+
+jar {
+	println "2 ${subName}"
+	
+	manifest {
+		attributes "Main-Class": mainClassName
+	}
+	
+	doLast {
+		file(archiveFile).setExecutable(true, false)
+	}
+}
