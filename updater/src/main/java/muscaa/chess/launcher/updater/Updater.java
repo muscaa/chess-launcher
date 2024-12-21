@@ -16,7 +16,13 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Properties;
 
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JProgressBar;
+
 public class Updater {
+	
+	private static final int DEFAULT_BUFFER_SIZE = 8192;
 	
 	public static final String BASE_URL = "base-url";
 	public static final String HEADERS = "headers";
@@ -119,11 +125,42 @@ public class Updater {
 		
 		FileOutputStream out = new FileOutputStream(getFile(CHESS_LAUNCHER_JAR, true));
 		InputStream in = response.body();
-		in.transferTo(out);
+		
+		int total = Integer.parseInt(response.headers().firstValue("Content-Length").orElse("-1"));
+		System.out.println("Total bytes: " + total);
+		
+		JFrame frame = new JFrame();
+		frame.setTitle(downloadFileProp);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(300, 100);
+		frame.setResizable(false);
+		frame.setLocationRelativeTo(null);
+		frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		
+		JProgressBar progressBar = new JProgressBar();
+		progressBar.setMinimum(0);
+		progressBar.setMaximum(100);
+		progressBar.setValue(0);
+		frame.add(progressBar);
+		
+		frame.setVisible(true);
+		
+		int transferred = 0;
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        int read;
+        while ((read = in.read(buffer, 0, DEFAULT_BUFFER_SIZE)) >= 0) {
+            out.write(buffer, 0, read);
+            transferred += read;
+            progressBar.setValue((int) (transferred * 100 / total));
+            System.out.println(progressBar.getValue() + "%");
+        }
+        
 		in.close();
 		out.close();
 		
 		Files.writeString(getFile(CHESS_LAUNCHER_VERSION, false).toPath(), version);
+		
+		frame.dispose();
 	}
 	
 	public File getFile(String name, boolean mkdirs) {

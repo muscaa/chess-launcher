@@ -20,6 +20,8 @@ public class Main {
 			e.printStackTrace(new PrintWriter(sw));
             
             JOptionPane.showMessageDialog(null, sw.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+            
+            System.exit(1);
 		}
 	}
 }
