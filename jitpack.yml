@@ -1,7 +1,2 @@
 jdk:
     - openjdk17
-before_install:
-    - echo "Running before install -- $VERSION"
-install:
-    - echo "Running install -- $VERSION"
-    - ./gradlew clean install
