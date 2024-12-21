@@ -1,3 +1,7 @@
+plugins {
+	id "maven-publish"
+}
+
 allprojects {
 	apply plugin: "eclipse"
 	apply plugin: "idea"
@@ -12,7 +16,6 @@ allprojects {
 
 configure(subprojects) {
 	apply plugin: "java-library"
-	apply plugin: "maven-publish"
 }
 
 subprojects {
@@ -20,7 +23,7 @@ subprojects {
     	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
     	
     	sourceCompatibility = 17
-		targetCompatibility = 8
+		targetCompatibility = 17
     	
         repositories {
 			mavenCentral()
@@ -53,13 +56,13 @@ subprojects {
 			withSourcesJar()
 			withJavadocJar()
 		}
-		
-		publishing {
-		    publications {
-		        maven(MavenPublication) {
-					from components.java
-		        }
-		    }
-		}
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+			from project(":core").components.java
+        }
     }
 }
