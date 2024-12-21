@@ -11,6 +11,8 @@ import javax.swing.JTabbedPane;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
+import muscaa.chess.launcher.ChessLauncher;
+
 public class TabsPanel extends JPanel {
 	
 	private static final long serialVersionUID = 507064802342134657L;
@@ -31,7 +33,7 @@ public class TabsPanel extends JPanel {
 		footer.setLayout(new BorderLayout());
 		footer.add(new JSeparator(), BorderLayout.NORTH);
 		
-		JLabel version = new JLabel("v1.0.0");
+		JLabel version = new JLabel("version " + ChessLauncher.INSTANCE.version);
 		version.putClientProperty(FlatClientProperties.STYLE_CLASS, "mini");
 		version.setBorder(BorderFactory.createEmptyBorder(0, 3, 3, 0));
 		footer.add(version, BorderLayout.CENTER);

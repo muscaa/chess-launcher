@@ -1,4 +1,6 @@
 ## Build:
+/bin/
+/build/
 /core/bin/
 /core/build/
 /updater/bin/

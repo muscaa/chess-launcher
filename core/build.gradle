@@ -1,7 +1,14 @@
 ext.subName = "core"
-ext.mainClass = "muscaa.chess.launcher.core.main.Main"
 
 dependencies {
+	implementation project(":updater")
+	
 	implementation "com.formdev:flatlaf:3.5.4"
 	implementation "com.github.rjeschke:txtmark:0.13"
+}
+
+jar {
+	dependencies {
+		exclude("muscaa/chess/launcher/updater/**")
+	}
 }
