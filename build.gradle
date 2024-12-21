@@ -39,6 +39,11 @@ subprojects {
 			
 			duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 			
+			into("META-INF") {
+	            from("${rootProject.projectDir}/LICENSE")
+	            from("${rootProject.projectDir}/NOTICE")
+	        }
+			
 			dependsOn configurations.runtimeClasspath
 			from {
 				configurations.runtimeClasspath.collect {
