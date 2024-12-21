@@ -23,6 +23,8 @@ public class Updater {
 	public static final String LINE_SPLIT = "line-split";
 	public static final String DOWNLOAD_FILE = "download-file";
 	public static final String INSTALL_LOCATION = "install-location";
+	public static final String AUTO_UPDATE = "auto-update";
+	public static final String VERSION = "version";
 	
 	public static final String USER_AGENT = "User-Agent";
 	
@@ -55,6 +57,8 @@ public class Updater {
 		properties.putIfAbsent(LINE_SPLIT, "\n");
 		properties.putIfAbsent(DOWNLOAD_FILE, "chess-launcher-${version.latest}.jar");
 		properties.putIfAbsent(INSTALL_LOCATION, "${user.home}/.chess/");
+		properties.putIfAbsent(AUTO_UPDATE, "true");
+		properties.putIfAbsent(VERSION, "1.0.0");
 		
 		properties.putIfAbsent(USER_AGENT, "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.200 Mobile Safari/537.36");
 		
@@ -131,6 +135,9 @@ public class Updater {
 	
 	public String getLatest() {
 		try {
+			String autoUpdateProp = getPropertyFormatted(AUTO_UPDATE);
+			if (!Boolean.parseBoolean(autoUpdateProp)) return getPropertyFormatted(VERSION);
+			
 			String baseUrlProp = getPropertyFormatted(BASE_URL);
 			HttpRequest.Builder builder = HttpRequest.newBuilder()
 					  .uri(new URI(baseUrlProp))
