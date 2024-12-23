@@ -8,8 +8,6 @@ mainClassName = "muscaa.chess.launcher.updater.main.Main"
 application.setMainClass(mainClassName)
 
 jar {
-	archiveFileName.set("chess-${subName}.jar")
-	
 	manifest {
 		attributes "Main-Class": mainClassName
 	}
