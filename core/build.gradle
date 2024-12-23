@@ -22,11 +22,11 @@ tasks.register("bundle", Zip) {
     archiveFileName.set("${subName}-bundle.zip")
 	
     from(tasks.named("jar")) {
-        into("lib")
+        into("libs")
     }
 	
     from(configurations.include) {
-        into("lib")
+        into("libs")
     }
 }
 

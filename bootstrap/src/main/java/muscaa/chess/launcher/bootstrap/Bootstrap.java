@@ -63,7 +63,7 @@ public class Bootstrap {
 			download(latest);
 		}
 		
-		File[] libs = new File(dir, "lib").listFiles();
+		File[] libs = new File(dir, "libs").listFiles();
 		for (int i = 0; i < libs.length; i++) {
 			loader.addURL(libs[i].toURI().toURL());
 		}
