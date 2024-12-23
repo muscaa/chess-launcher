@@ -122,7 +122,11 @@ public class Bootstrap {
 		System.out.println("Deleting old files...");
 		File parentDir = downloadZip.getParentFile();
 		for (File file : parentDir.listFiles()) {
-			if (file.getName().equals(downloadZip.getName()) || file.getName().equals("config")) {
+			if (file.getName().equals(downloadZip.getName())
+					|| file.getName().equals("config")
+					|| file.getName().equals("bootstrap.jar")
+					|| file.getName().equals("bootstrap.md5")
+					) {
 				continue;
 			}
 			
