@@ -1,35 +1,8 @@
 ext.subName = "core"
 
-configurations {
-    include {
-        canBeResolved = true
-        canBeConsumed = false
-    }
-    
-    runtimeClasspath.extendsFrom(include)
-    compileClasspath.extendsFrom(include)
-}
-
 dependencies {
 	implementation project(":updater")
 	
 	include "com.formdev:flatlaf:3.5.4"
 	include "com.github.rjeschke:txtmark:0.13"
-}
-
-tasks.register("bundle", Zip) {
-    destinationDirectory.set(file("$buildDir/libs"))
-    archiveFileName.set("${subName}-bundle.zip")
-	
-    from(tasks.named("jar")) {
-        into("lib")
-    }
-	
-    from(configurations.include) {
-        into("lib")
-    }
-}
-
-tasks.named("jar") {
-    finalizedBy("bundle")
 }

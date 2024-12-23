@@ -29,6 +29,16 @@ subprojects {
 			mavenCentral()
 			maven { url "https://jitpack.io" }
 		}
+		
+		configurations {
+		    include {
+		        canBeResolved = true
+		        canBeConsumed = false
+		    }
+		    
+		    runtimeClasspath.extendsFrom(include)
+		    compileClasspath.extendsFrom(include)
+		}
     }
     
     afterEvaluate {
@@ -48,14 +58,33 @@ subprojects {
 			withJavadocJar()
 		}
     }
+    
+    tasks.register("bundle", Zip) {
+	    destinationDirectory.set(file("${buildDir}/libs"))
+	    archiveFileName.set("${subName}-bundle.zip")
+		
+	    from(tasks.named("jar")) {
+	        into("lib")
+	    }
+		
+	    from(configurations.include) {
+	        into("lib")
+	    }
+	}
+	
+	tasks.named("jar") {
+	    finalizedBy("bundle")
+	}
 }
+
+def core = project(":core")
 
 publishing {
     publications {
         maven(MavenPublication) {
-			from project(":core").components.java
+			from core.components.java
 			
-			artifact(":core:bundle") {
+			artifact(core.tasks.named("bundle")) {
                 classifier = "bundle"
             }
         }
