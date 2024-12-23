@@ -5,6 +5,8 @@
 /core/build/
 /updater/bin/
 /updater/build/
+/bootstrap/bin/
+/bootstrap/build/
 
 ## Gradle:
 .gradle/

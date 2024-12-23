@@ -1,7 +1,7 @@
 ext.subName = "core"
 
 dependencies {
-	implementation project(":updater")
+	implementation project(":bootstrap")
 	
 	include "com.formdev:flatlaf:3.5.4"
 	include "com.github.rjeschke:txtmark:0.13"

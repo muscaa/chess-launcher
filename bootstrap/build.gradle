@@ -1,0 +1,22 @@
+plugins {
+	id "application"
+}
+
+ext.subName = "bootstrap"
+
+mainClassName = "muscaa.chess.launcher.bootstrap.main.Main"
+application.setMainClass(mainClassName)
+
+dependencies {
+	implementation project(":updater")
+}
+
+jar {
+	manifest {
+		attributes "Main-Class": mainClassName
+	}
+	
+	doLast {
+		file(archiveFile).setExecutable(true, false)
+	}
+}

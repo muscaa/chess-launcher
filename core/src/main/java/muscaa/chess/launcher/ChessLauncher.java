@@ -1,14 +1,14 @@
 package muscaa.chess.launcher;
 
+import muscaa.chess.launcher.bootstrap.Bootstrap;
 import muscaa.chess.launcher.gui.MainFrame;
 import muscaa.chess.launcher.gui.panels.TabsPanel;
-import muscaa.chess.launcher.updater.Updater;
 
 public class ChessLauncher {
 	
 	public static final ChessLauncher INSTANCE = new ChessLauncher();
 	
-	public final String version = Updater.INSTANCE.getInstalled();
+	public final String version = Bootstrap.INSTANCE.getInstalled();
 	public final MainFrame mainFrame = new MainFrame();
 	
 	public void start() {
