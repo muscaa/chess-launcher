@@ -2,14 +2,12 @@ plugins {
 	id "application"
 }
 
+import java.security.MessageDigest
+
 ext.subName = "bootstrap"
 
 mainClassName = "muscaa.chess.launcher.bootstrap.main.Main"
 application.setMainClass(mainClassName)
-
-dependencies {
-	implementation project(":updater")
-}
 
 jar {
 	manifest {
@@ -19,4 +17,29 @@ jar {
 	doLast {
 		file(archiveFile).setExecutable(true, false)
 	}
+}
+
+def calculateMD5(file) {
+    def md = MessageDigest.getInstance("MD5")
+    file.withInputStream { fis ->
+        def buffer = new byte[8192]
+        def read
+        while ((read = fis.read(buffer)) != -1) {
+            md.update(buffer, 0, read)
+        }
+    }
+    return md.digest().encodeHex().toString()
+}
+
+tasks.register("generateMd5") {
+	doLast {
+		def jarFile = tasks.jar.archiveFile.get().asFile
+	    def md5 = calculateMD5(jarFile)
+	    def md5File = new File("${buildDir}/libs/${subName}.md5")
+	    md5File.text = md5
+	}
+}
+
+tasks.named("jar") {
+    finalizedBy("generateMd5")
 }
