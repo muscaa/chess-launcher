@@ -1,12 +1,16 @@
 ## Build:
 /bin/
 /build/
+/run/
 /core/bin/
 /core/build/
+/core/run/
 /updater/bin/
 /updater/build/
+/updater/run/
 /bootstrap/bin/
 /bootstrap/build/
+/bootstrap/run/
 
 ## Gradle:
 .gradle/
