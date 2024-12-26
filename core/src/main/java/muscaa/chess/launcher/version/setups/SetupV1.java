@@ -12,14 +12,13 @@ import fluff.core.utils.StringUtils;
 import fluff.files.Folder;
 import fluff.http.HTTP;
 import fluff.http.body.HTTPBodyParser;
-import fluff.json.JSON;
-import fluff.json.JSONObject;
 import muscaa.chess.launcher.utils.FileUtils;
 import muscaa.chess.launcher.version.AbstractSetup;
+import muscaa.chess.launcher.version.SetupStages;
 import muscaa.chess.launcher.version.Version;
 import muscaa.chess.launcher.version.VersionException;
 import muscaa.chess.launcher.version.VersionManager;
-import muscaa.chess.launcher.version.VersionState;
+import muscaa.chess.launcher.version.VersionStatus;
 
 public class SetupV1 extends AbstractSetup {
 	
@@ -30,11 +29,10 @@ public class SetupV1 extends AbstractSetup {
 	}
 	
 	@Override
-	public void install(Version version) throws VersionException {
-		Folder dir = new Folder(FileUtils.versions, version.getName());
-		FileUtils.deleteContents(dir);
+	public void install(SetupStages stages, Folder dir, Version version) throws VersionException {
+		stages.beginIndeterminate(StringUtils.format("Downloading ${}/bundle.zip...", version.getString()));
 		
-		InputStream in = http.GET(StringUtils.format("${}/client-bootstrap/${}/client-bootstrap-${}-bundle.zip", VersionManager.URL, version.getName(), version.getName()))
+		InputStream in = http.GET(StringUtils.format("${}/client-bootstrap/${}/bundle.zip", VersionManager.URL, version.getString()))
 				.setTimeout(Duration.ofSeconds(3))
 				.setHead(VersionManager.HEAD)
 				.send()
@@ -42,6 +40,9 @@ public class SetupV1 extends AbstractSetup {
 				.getNoClose(HTTPBodyParser.INPUT_STREAM);
 		
 		try (ZipInputStream zipIn = new ZipInputStream(in)) {
+			int available = in.available();
+			stages.begin(null, available);
+			
 			ZipEntry entry;
 			while ((entry = zipIn.getNextEntry()) != null) {
 				File file = new File(dir, entry.getName());
@@ -55,42 +56,37 @@ public class SetupV1 extends AbstractSetup {
 					out.close();
 				}
 				zipIn.closeEntry();
+				
+				stages.progress(available - in.available());
 			}
 		} catch (IOException e) {
 			throw new VersionException(e);
 		}
-		
-		JSONObject versionObject = JSON.object()
-				.put("version", version.getName())
-				.put("setup", getID());
-		
-		FileUtils.write(new File(dir, "version.json"))
-				.append(versionObject.toPrettyString())
-				.close();
 	}
 	
 	@Override
-	public void launch(Version version) throws VersionException {
-		
-	}
-	
-	@Override
-	public VersionState getState(Version version) throws VersionException {
-		File dir = new File(FileUtils.versions, version.getName());
-		if (!dir.exists()) return VersionState.NOT_INSTALLED;
-		
+	public void launch(SetupStages stages, Folder dir, Version version) throws VersionException {
 		File bootstrapFile = new File(dir, "client-bootstrap.jar");
-		if (!bootstrapFile.exists()) return VersionState.NOT_INSTALLED;
+		if (!bootstrapFile.exists()) throw new VersionException("Version not installed!");
 		
-		File versionFile = new File(dir, "version.json");
-		if (!versionFile.exists()) return VersionState.NOT_INSTALLED;
+		stages.begin("Creating process...", 1);
+		ProcessBuilder pb = new ProcessBuilder()
+				.command("javaw", "-jar", bootstrapFile.getAbsolutePath())
+				.directory(FileUtils.dir);
 		
-		JSONObject versionObject = JSON.object(FileUtils.read(versionFile).String());
-		String installedVersion = versionObject.getString("version");
-		if (!installedVersion.equals(version.getName())) {
-			return version.isUpdateable() ? VersionState.OUTDATED : VersionState.NOT_INSTALLED;
+		try {
+			pb.start();
+			stages.progress(1);
+		} catch (IOException e) {
+			throw new VersionException(e);
 		}
+	}
+	
+	@Override
+	public VersionStatus getStatus(Folder dir, Version version) throws VersionException {
+		File bootstrapFile = new File(dir, "client-bootstrap.jar");
+		if (!bootstrapFile.exists()) return VersionStatus.NOT_INSTALLED;
 		
-		return VersionState.UP_TO_DATE;
+		return VersionStatus.UP_TO_DATE;
 	}
 }

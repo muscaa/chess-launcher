@@ -1,4 +1,4 @@
-package muscaa.chess.launcher.gui.panels;
+package muscaa.chess.launcher.gui.panels.tabs.play;
 
 import java.awt.BorderLayout;
 

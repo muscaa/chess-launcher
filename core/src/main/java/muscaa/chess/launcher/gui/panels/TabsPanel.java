@@ -10,6 +10,8 @@ import javax.swing.JTabbedPane;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
+import muscaa.chess.launcher.gui.panels.tabs.play.PlayPanel;
+
 public class TabsPanel extends JPanel {
 	
 	private static final long serialVersionUID = 507064802342134657L;

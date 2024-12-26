@@ -1,5 +1,6 @@
 package muscaa.chess.launcher.version;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,10 +9,12 @@ import java.util.Map;
 
 import fluff.core.utils.StringUtils;
 import fluff.http.HTTP;
+import fluff.http.HTTPException;
 import fluff.http.body.HTTPBodyParser;
 import fluff.http.head.HTTPHead;
 import fluff.http.head.HTTPHeader;
 import fluff.json.JSONObject;
+import muscaa.chess.launcher.utils.FileUtils;
 import muscaa.chess.launcher.version.setups.SetupV1;
 
 public class VersionManager {
@@ -31,20 +34,19 @@ public class VersionManager {
 	public VersionManager() {
 		addSetup(new SetupV1());
 		
-		loadInstalledVersions();
-		loadAvailableVersions();
+		try {
+			loadAvailableVersions();
+		} catch (HTTPException e) {
+			loadInstalledVersions();
+		}
 	}
 	
 	private void addSetup(AbstractSetup setup) {
 		setups.put(setup.getID(), setup);
 	}
 	
-	private void loadInstalledVersions() {
-		
-	}
-	
-	private void loadAvailableVersions() {
-		/*JSONObject groupsObject = http.GET(API_URL)
+	private void loadAvailableVersions() throws HTTPException {
+		JSONObject groupsObject = http.GET(API_URL)
 				.setTimeout(Duration.ofSeconds(3))
 				.send()
 				.getBody()
@@ -52,23 +54,35 @@ public class VersionManager {
 		JSONObject artifactsObject = groupsObject.getObject("com.github." + USER);
 		JSONObject versionsObject = artifactsObject.getObject(REPOSITORY);
 		
+		Version latestStable = null;
 		for (Map.Entry<String, String> e : versionsObject.iterate(JSONObject::getString)) {
 			if (!e.getValue().equalsIgnoreCase("ok")) continue;
 			
-			// TODO check if snapshot version
-			boolean snapshot = false;
-			
-			String setupID = http.GET(StringUtils.format("${}/client/${}/client-${}-setup.zip", URL, e.getKey(), e.getKey()))
+			String setupID = http.GET(StringUtils.format("${}/client/${}/setup.war", URL, e.getKey()))
 					.setTimeout(Duration.ofSeconds(3))
 					.setHead(HEAD)
 					.send()
 					.getBody()
 					.get(HTTPBodyParser.STRING);
 			
-			versions.addFirst(new Version(e.getKey(), snapshot, false, setups.get(setupID)));
-		}*/
+			Version version = new Version(e.getKey(), e.getKey(), false, setups.get(setupID));
+			if (!version.isSnapshot()) latestStable = version;
+			
+			versions.addFirst(version);
+		}
 		
-		// TODO add latest version
+		if (latestStable != null) {
+			versions.addFirst(new Version("latest", latestStable.getString(), true, latestStable.getSetup()));
+		}
+	}
+	
+	private void loadInstalledVersions() {
+		for (File dir : FileUtils.versions.listFiles()) {
+			if (!dir.isDirectory()) continue;
+			try {
+				versions.addFirst(new Version(dir, setups));
+			} catch (VersionException e) {}
+		}
 	}
 	
 	public List<Version> getVersions() {
