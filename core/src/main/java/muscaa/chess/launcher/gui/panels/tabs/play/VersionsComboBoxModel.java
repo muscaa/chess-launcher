@@ -26,7 +26,9 @@ public class VersionsComboBoxModel extends AbstractListModel<Version> implements
 			versions.add(v);
 		}
 		
-		setSelectedItem(versions.get(0));
+		if (!versions.isEmpty()) {
+			setSelectedItem(versions.get(0));
+		}
 	}
 	
 	@Override
