@@ -44,3 +44,30 @@ subprojects {
 		}
     }
 }
+
+def m2RepoDir = new File(System.getProperty("user.home"), ".m2/repository")
+def groupDir = new File(m2RepoDir, project.group.replace('.', '/'))
+def publishDir = new File(groupDir, "${project.name}/${project.version}")
+def core = project(":core")
+
+tasks.register("bundle", Zip) {
+    destinationDirectory.set(publishDir)
+    archiveFileName.set("bundle.zip")
+	
+	into("libs") {
+		from(core.tasks.named("jar"))
+		from(core.configurations.include)
+	}
+}
+
+tasks.named("publishToMavenLocal") {
+    finalizedBy "bundle"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+			from core.components.java
+        }
+    }
+}

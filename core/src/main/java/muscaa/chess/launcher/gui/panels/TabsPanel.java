@@ -6,12 +6,9 @@ import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 
 import com.formdev.flatlaf.FlatClientProperties;
-
-import muscaa.chess.launcher.ChessLauncher;
 
 public class TabsPanel extends JPanel {
 	
@@ -24,20 +21,10 @@ public class TabsPanel extends JPanel {
 		
 		tabs = new JTabbedPane(JTabbedPane.LEFT, JTabbedPane.SCROLL_TAB_LAYOUT);
 		addTab("Play", new PlayPanel());
-		addTab("Mods", new ModsPanel());
-		addTab("Settings", new SettingsPanel());
+		//addTab("Mods", new ModsPanel());
+		//addTab("Settings", new SettingsPanel());
 		
 		add(tabs, BorderLayout.CENTER);
-		
-		JPanel footer = new JPanel();
-		footer.setLayout(new BorderLayout());
-		footer.add(new JSeparator(), BorderLayout.NORTH);
-		
-		JLabel version = new JLabel("version " + ChessLauncher.INSTANCE.version);
-		version.putClientProperty(FlatClientProperties.STYLE_CLASS, "mini");
-		version.setBorder(BorderFactory.createEmptyBorder(0, 3, 3, 0));
-		footer.add(version, BorderLayout.CENTER);
-		add(footer, BorderLayout.SOUTH);
 	}
 	
 	public JPanel addTab(String title, Component component) {

@@ -6,9 +6,9 @@ import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
+import fluff.core.FluffCore;
 import muscaa.chess.launcher.ChessLauncher;
 import muscaa.chess.launcher.bootstrap.Bootstrap;
-import muscaa.chess.launcher.bootstrap.JitpackBootstrap;
 
 public class Main {
 	
@@ -18,9 +18,10 @@ public class Main {
 		}
 		
 		// fix for flatlaf no ui found errors
-		Thread.currentThread().setContextClassLoader(JitpackBootstrap.INSTANCE.loader);
-		UIManager.getDefaults().put("ClassLoader", JitpackBootstrap.INSTANCE.loader);
+		Thread.currentThread().setContextClassLoader(Bootstrap.INSTANCE.loader);
+		UIManager.getDefaults().put("ClassLoader", Bootstrap.INSTANCE.loader);
 		
+		FluffCore.init();
 		FlatDarkLaf.setup();
 		setUIDefaults();
 		

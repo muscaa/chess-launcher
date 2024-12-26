@@ -1,13 +1,12 @@
 ext.subName = "core"
 
 configurations {
-    include {
-        canBeResolved = true
-        canBeConsumed = false
+	include {
+	    canBeResolved = true
+	    canBeConsumed = true
     }
     
-    runtimeClasspath.extendsFrom(include)
-    compileClasspath.extendsFrom(include)
+    api.extendsFrom(include)
 }
 
 dependencies {
@@ -15,38 +14,11 @@ dependencies {
 	
 	include "com.formdev:flatlaf:3.5.4"
 	include "com.github.rjeschke:txtmark:0.13"
-}
-
-tasks.register("bundle", Zip) {
-    destinationDirectory.set(file("${buildDir}/libs"))
-    archiveFileName.set("${subName}-bundle.zip")
-	
-    from(tasks.named("jar")) {
-        into("libs")
-    }
-	
-    from(configurations.include) {
-        into("libs")
-    }
-}
-
-tasks.named("jar") {
-    finalizedBy("bundle")
+	include "com.github.muscaa:fluff-http:1.0.+"
+	include "com.github.muscaa:fluff-files:1.0.+"
 }
 
 java {
 	withSourcesJar()
 	withJavadocJar()
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-			from components.java
-			
-			artifact(tasks.named("bundle")) {
-                classifier = "bundle"
-            }
-        }
-    }
 }

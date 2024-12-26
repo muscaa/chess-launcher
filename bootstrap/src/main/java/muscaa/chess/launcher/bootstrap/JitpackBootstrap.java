@@ -28,11 +28,8 @@ public class JitpackBootstrap extends Bootstrap {
 			"User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.200 Mobile Safari/537.36"
 	};
 	private static final String VERSION_FILE = "version.txt";
-	private static final String DOWNLOAD_FILE = "launcher.zip";
 	private static final String MAIN_CLASS = "muscaa.chess.launcher.main.Main";
-	private static final String[] BUNDLE_FILE = {
-			"chess-launcher-", "-bundle.zip"
-	};
+	private static final String BUNDLE_FILE = "bundle.zip";
 	
 	@SuppressWarnings("resource")
 	public JitpackBootstrap() throws Exception {
@@ -81,9 +78,8 @@ public class JitpackBootstrap extends Bootstrap {
 				String[] files = request(BodyHandlers.ofString(), true, version).body().split(LINE_SPLIT);
 				for (String file : files) {
 					String name = urlPath(file);
-					String bundleFile = String.join(version, BUNDLE_FILE);
 					
-					if (name.equals(bundleFile)) {
+					if (name.equals(BUNDLE_FILE)) {
 						return version;
 					}
 				}
@@ -105,10 +101,9 @@ public class JitpackBootstrap extends Bootstrap {
 	}
 	
 	public static void download(File outDir, String version) throws Exception {
-		String bundleFile = String.join(version, BUNDLE_FILE);
-		HttpResponse<InputStream> response = request(BodyHandlers.ofInputStream(), false, version, bundleFile);
+		HttpResponse<InputStream> response = request(BodyHandlers.ofInputStream(), false, version, BUNDLE_FILE);
 		
-		File downloadZip = new File(outDir, DOWNLOAD_FILE);
+		File downloadZip = new File(outDir, BUNDLE_FILE);
 		FileOutputStream out = new FileOutputStream(downloadZip);
 		InputStream in = response.body();
 		
@@ -116,7 +111,7 @@ public class JitpackBootstrap extends Bootstrap {
 		System.out.println("Total bytes: " + total);
 		
 		JFrame frame = new JFrame();
-		frame.setTitle(bundleFile);
+		frame.setTitle(version);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(300, 100);
 		frame.setResizable(false);

@@ -41,5 +41,5 @@ tasks.register("generateMd5") {
 }
 
 tasks.named("jar") {
-    finalizedBy("generateMd5")
+    finalizedBy "generateMd5"
 }

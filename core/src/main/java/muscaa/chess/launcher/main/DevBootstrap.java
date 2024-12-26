@@ -9,7 +9,8 @@ class DevBootstrap extends Bootstrap {
 	
 	@SuppressWarnings("resource")
 	public DevBootstrap() {
-		super(new File("run"), new OpenClassLoader(DevBootstrap.class.getClassLoader()));
+		super(new File("run/launcher"), new OpenClassLoader(DevBootstrap.class.getClassLoader()));
+		dir.mkdirs();
 	}
 	
 	@Override
