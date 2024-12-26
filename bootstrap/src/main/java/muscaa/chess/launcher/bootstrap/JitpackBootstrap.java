@@ -1,7 +1,6 @@
 package muscaa.chess.launcher.bootstrap;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -52,7 +51,7 @@ public class JitpackBootstrap extends Bootstrap {
 		System.out.println("Latest: " + latest);
 		
 		File versionFile = new File(dir, VERSION_FILE);
-		if (!latest.equals(installed) || !versionFile.exists()) {
+		if (latest != null && (!latest.equals(installed) || !versionFile.exists())) {
 			download(dir, latest);
 		}
 		
@@ -103,8 +102,6 @@ public class JitpackBootstrap extends Bootstrap {
 	public static void download(File outDir, String version) throws Exception {
 		HttpResponse<InputStream> response = request(BodyHandlers.ofInputStream(), false, version, BUNDLE_FILE);
 		
-		File downloadZip = new File(outDir, BUNDLE_FILE);
-		FileOutputStream out = new FileOutputStream(downloadZip);
 		InputStream in = response.body();
 		
 		int total = Integer.parseInt(response.headers().firstValue("Content-Length").orElse("-1"));
@@ -120,36 +117,15 @@ public class JitpackBootstrap extends Bootstrap {
 		
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setMinimum(0);
-		progressBar.setMaximum(100);
+		progressBar.setMaximum(3);
 		progressBar.setValue(0);
 		frame.add(progressBar);
 		
 		frame.setVisible(true);
-		System.out.println("Downloading...");
-		
-		int transferred = 0;
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = in.read(buffer, 0, buffer.length)) >= 0) {
-            out.write(buffer, 0, read);
-            transferred += read;
-            
-            int value = (int) (transferred * 100 / total);
-            progressBar.setValue(value);
-            
-            if (value % 10 == 0) System.out.println(value + "%");
-        }
-        
-		in.close();
-		out.close();
-		
-		progressBar.setIndeterminate(true);
 		
 		System.out.println("Deleting old files...");
-		File parentDir = downloadZip.getParentFile();
-		for (File file : parentDir.listFiles()) {
-			if (file.getName().equals(downloadZip.getName())
-					|| file.getName().equals("config")
+		for (File file : outDir.listFiles()) {
+			if (file.getName().equals("config")
 					|| file.getName().equals("bootstrap.jar")
 					|| file.getName().equals("bootstrap.md5")
 					) {
@@ -158,15 +134,30 @@ public class JitpackBootstrap extends Bootstrap {
 			
 			delete(file);
 		}
+		progressBar.setValue(1);
 		
-		System.out.println("Extracting...");
-		extract(downloadZip, parentDir);
-		
-		System.out.println("Deleting zip...");
-		delete(downloadZip);
+		System.out.println("Downloading & extracting...");
+		try (ZipInputStream zipIn = new ZipInputStream(in)) {
+			ZipEntry entry;
+			while ((entry = zipIn.getNextEntry()) != null) {
+				File file = new File(outDir, entry.getName());
+				if (entry.isDirectory()) {
+					file.mkdirs();
+				} else {
+					file.getParentFile().mkdirs();
+					
+					FileOutputStream out = new FileOutputStream(file);
+					zipIn.transferTo(out);
+					out.close();
+				}
+				zipIn.closeEntry();
+			}
+		}
+		progressBar.setValue(2);
 		
 		System.out.println("Writing version...");
 		Files.writeString(new File(outDir, VERSION_FILE).toPath(), version);
+		progressBar.setValue(3);
 		
 		System.out.println("Done.");
 		
@@ -193,25 +184,6 @@ public class JitpackBootstrap extends Bootstrap {
 				  .send(builder.build(), bodyHandler);
 		
 		return response;
-	}
-	
-	public static void extract(File zip, File outDir) throws Exception {
-		ZipInputStream in = new ZipInputStream(new FileInputStream(zip));
-		ZipEntry entry;
-		while ((entry = in.getNextEntry()) != null) {
-			File file = new File(outDir, entry.getName());
-			if (entry.isDirectory()) {
-				file.mkdirs();
-			} else {
-				file.getParentFile().mkdirs();
-				
-				FileOutputStream out = new FileOutputStream(file);
-				in.transferTo(out);
-				out.close();
-			}
-			in.closeEntry();
-		}
-		in.close();
 	}
 	
 	public static String urlPath(String urlPath) {
