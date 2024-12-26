@@ -45,18 +45,22 @@ public class LaunchPanel extends JPanel {
 		versionsModel = new VersionsComboBoxModel(true);
 		versions = new JComboBox<>(versionsModel);
 		versions.addActionListener(e -> {
-			launch.setText(getLaunchButtonText());
+			updateLaunchButtonText();
 		});
 		
-		launch = new JButton(getLaunchButtonText());
-		launch.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-		launch.setPreferredSize(new Dimension(200, launch.getPreferredSize().height));
+		launch = new JButton();
+		updateLaunchButtonText();
+		launch.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+		launch.setPreferredSize(new Dimension(200, (int) (launch.getPreferredSize().height * 1.4)));
 		launch.addActionListener(e -> {
 			if (stages.isRunning()) return;
+			if (versionsModel.getStatus() == null) return;
 			
 			Thread t = new Thread(() -> {
 				try {
+					launch.setEnabled(false);
 					show("progress");
+					
 					Version v = versionsModel.getVersion();
 					if (versionsModel.getStatus() != VersionStatus.UP_TO_DATE) {
 						v.install(stages);
@@ -65,6 +69,7 @@ public class LaunchPanel extends JPanel {
 					
 					show("empty");
 					stages.end();
+					launch.setEnabled(true);
 					
 					ChessLauncher.INSTANCE.stop();
 				} catch (Exception e1) {
@@ -75,7 +80,7 @@ public class LaunchPanel extends JPanel {
 					progress.setValue(0);
 				}
 			});
-			t.setName(getLaunchButtonText() + " Thread");
+			t.setName(launch.getText() + " Thread");
 			t.setDaemon(true);
 			t.start();
 		});
@@ -115,11 +120,21 @@ public class LaunchPanel extends JPanel {
 		progressLayout.show(progress.getParent().getParent(), name);
 	}
 	
-	private String getLaunchButtonText() {
-		return switch (versionsModel.getStatus()) {
+	private void updateLaunchButtonText() {
+		VersionStatus status = versionsModel.getStatus();
+		if (status == null) {
+			launch.setEnabled(false);
+			launch.setText("No Version Selected");
+			return;
+		}
+		
+		String text = switch (status) {
 			case NOT_INSTALLED -> "Install & Launch";
 			case OUTDATED -> "Update & Launch";
 			case UP_TO_DATE -> "Launch";
 		};
+		
+		launch.setEnabled(true);
+		launch.setText(text);
 	}
 }
