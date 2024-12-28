@@ -2,6 +2,7 @@ package muscaa.chess.launcher.version;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 
 import fluff.core.utils.StringUtils;
 import fluff.files.Folder;
@@ -15,15 +16,17 @@ public class Version {
 	private final String string;
 	private final boolean updateable;
 	private final AbstractSetup setup;
+	private final boolean snapshot;
 	
-	public Version(String name, String string, boolean updateable, AbstractSetup setup) {
+	Version(String name, String string, boolean updateable, AbstractSetup setup) {
 		this.name = name;
 		this.string = string;
 		this.updateable = updateable;
 		this.setup = setup;
+		this.snapshot = string.contains("snapshot");
 	}
 	
-	public Version(File dir, Map<String, AbstractSetup> setups) throws VersionException {
+	Version(File dir, Map<String, AbstractSetup> setups) throws VersionException {
 		File versionFile = new File(dir, "version.json");
 		if (!versionFile.exists()) throw new VersionException("File version.json not found.");
 		
@@ -33,6 +36,7 @@ public class Version {
 		this.string = json.getString("string");
 		this.updateable = json.getBoolean("updateable");
 		this.setup = setups.get(json.getString("setup"));
+		this.snapshot = string.contains("snapshot");
 		
 		if (getStatus() == VersionStatus.NOT_INSTALLED) throw new VersionException("Version " + name + " not installed.");
 	}
@@ -110,11 +114,16 @@ public class Version {
 	}
 	
 	public boolean isSnapshot() {
-		return string.startsWith("snapshot");
+		return snapshot;
 	}
 	
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, string);
 	}
 }

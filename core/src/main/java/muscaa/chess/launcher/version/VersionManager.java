@@ -3,9 +3,11 @@ package muscaa.chess.launcher.version;
 import java.io.File;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fluff.core.utils.StringUtils;
 import fluff.http.HTTP;
@@ -34,10 +36,14 @@ public class VersionManager {
 	public VersionManager() {
 		addSetup(new SetupV1());
 		
+		Set<Version> set = new LinkedHashSet<>();
+		loadInstalledVersions(set);
 		try {
-			loadAvailableVersions();
-		} catch (HTTPException e) {
-			loadInstalledVersions();
+			loadAvailableVersions(set);
+		} catch (HTTPException e) {}
+		
+		for (Version version : set) {
+			versions.addFirst(version);
 		}
 	}
 	
@@ -45,7 +51,7 @@ public class VersionManager {
 		setups.put(setup.getID(), setup);
 	}
 	
-	private void loadAvailableVersions() throws HTTPException {
+	private void loadAvailableVersions(Set<Version> set) throws HTTPException {
 		JSONObject groupsObject = http.GET(API_URL)
 				.setTimeout(Duration.ofSeconds(3))
 				.send()
@@ -68,19 +74,19 @@ public class VersionManager {
 			Version version = new Version(e.getKey(), e.getKey(), false, setups.get(setupID));
 			if (!version.isSnapshot()) latestStable = version;
 			
-			versions.addFirst(version);
+			set.add(version);
 		}
 		
 		if (latestStable != null) {
-			versions.addFirst(new Version("latest", latestStable.getString(), true, latestStable.getSetup()));
+			set.add(new Version("latest", latestStable.getString(), true, latestStable.getSetup()));
 		}
 	}
 	
-	private void loadInstalledVersions() {
+	private void loadInstalledVersions(Set<Version> set) {
 		for (File dir : FileUtils.versions.listFiles()) {
 			if (!dir.isDirectory()) continue;
 			try {
-				versions.addFirst(new Version(dir, setups));
+				set.add(new Version(dir, setups));
 			} catch (VersionException e) {}
 		}
 	}
