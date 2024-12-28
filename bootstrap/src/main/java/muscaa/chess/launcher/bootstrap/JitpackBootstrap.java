@@ -16,9 +16,9 @@ import java.time.Duration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import muscaa.chess.launcher.bootstrap.download.HeadlessProgress;
-import muscaa.chess.launcher.bootstrap.download.IProgress;
-import muscaa.chess.launcher.bootstrap.download.WindowProgress;
+import muscaa.chess.launcher.bootstrap.progress.HeadlessProgress;
+import muscaa.chess.launcher.bootstrap.progress.IProgress;
+import muscaa.chess.launcher.bootstrap.progress.WindowProgress;
 
 public class JitpackBootstrap extends Bootstrap {
 	

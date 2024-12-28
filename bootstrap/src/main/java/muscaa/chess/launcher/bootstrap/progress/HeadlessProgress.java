@@ -1,4 +1,4 @@
-package muscaa.chess.launcher.bootstrap.download;
+package muscaa.chess.launcher.bootstrap.progress;
 
 public class HeadlessProgress implements IProgress {
 	
