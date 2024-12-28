@@ -13,10 +13,6 @@ jar {
 	manifest {
 		attributes "Main-Class": mainClassName
 	}
-	
-	doLast {
-		file(archiveFile).setExecutable(true, false)
-	}
 }
 
 def calculateMD5(file) {
