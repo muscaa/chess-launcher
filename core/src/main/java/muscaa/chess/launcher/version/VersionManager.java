@@ -37,10 +37,10 @@ public class VersionManager {
 		addSetup(new SetupV1());
 		
 		Set<Version> set = new LinkedHashSet<>();
-		loadInstalledVersions(set);
 		try {
 			loadAvailableVersions(set);
 		} catch (HTTPException e) {}
+		loadInstalledVersions(set);
 		
 		for (Version version : set) {
 			versions.addFirst(version);
