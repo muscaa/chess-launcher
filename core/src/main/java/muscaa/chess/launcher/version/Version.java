@@ -123,6 +123,13 @@ public class Version {
 	}
 	
 	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Version v)) return false;
+		
+		return name.equals(v.name) && string.equals(v.string);
+	}
+	
+	@Override
 	public int hashCode() {
 		return Objects.hash(name, string);
 	}
