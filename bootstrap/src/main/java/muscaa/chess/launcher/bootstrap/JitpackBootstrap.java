@@ -1,5 +1,6 @@
 package muscaa.chess.launcher.bootstrap;
 
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -15,9 +16,9 @@ import java.time.Duration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JProgressBar;
+import muscaa.chess.launcher.bootstrap.download.HeadlessProgress;
+import muscaa.chess.launcher.bootstrap.download.IProgress;
+import muscaa.chess.launcher.bootstrap.download.WindowProgress;
 
 public class JitpackBootstrap extends Bootstrap {
 	
@@ -107,23 +108,10 @@ public class JitpackBootstrap extends Bootstrap {
 		int total = Integer.parseInt(response.headers().firstValue("Content-Length").orElse("-1"));
 		System.out.println("Total bytes: " + total);
 		
-		JFrame frame = new JFrame();
-		frame.setTitle(version);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(300, 100);
-		frame.setResizable(false);
-		frame.setLocationRelativeTo(null);
-		frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		IProgress progress = GraphicsEnvironment.isHeadless() ? new HeadlessProgress() : new WindowProgress();
+		progress.init(3);
 		
-		JProgressBar progressBar = new JProgressBar();
-		progressBar.setMinimum(0);
-		progressBar.setMaximum(3);
-		progressBar.setValue(0);
-		frame.add(progressBar);
-		
-		frame.setVisible(true);
-		
-		System.out.println("Deleting old files...");
+		progress.update(1, "Deleting old files...");
 		for (File file : outDir.listFiles()) {
 			if (file.getName().equals("config")
 					|| file.getName().equals("bootstrap.jar")
@@ -134,9 +122,8 @@ public class JitpackBootstrap extends Bootstrap {
 			
 			delete(file);
 		}
-		progressBar.setValue(1);
 		
-		System.out.println("Downloading & extracting...");
+		progress.update(2, "Downloading & extracting...");
 		try (ZipInputStream zipIn = new ZipInputStream(in)) {
 			ZipEntry entry;
 			while ((entry = zipIn.getNextEntry()) != null) {
@@ -153,15 +140,11 @@ public class JitpackBootstrap extends Bootstrap {
 				zipIn.closeEntry();
 			}
 		}
-		progressBar.setValue(2);
 		
-		System.out.println("Writing version...");
+		progress.update(3, "Writing version...");
 		Files.writeString(new File(outDir, VERSION_FILE).toPath(), version);
-		progressBar.setValue(3);
 		
-		System.out.println("Done.");
-		
-		frame.dispose();
+		progress.end();
 	}
 	
 	public static <V> HttpResponse<V> request(BodyHandler<V> bodyHandler, boolean dir, String... path) throws Exception {
