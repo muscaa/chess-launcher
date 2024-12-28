@@ -1,5 +1,6 @@
 package muscaa.chess.launcher.updater.main;
 
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,8 +41,8 @@ public class Main {
 				System.out.println("To dump the default properties, create an empty chess-updater.properties file.");
 			}
 			
-			PROPERTIES.putIfAbsent(BOOTSTRAP_JAR_URL, "https://github.com/muscaa/chess-launcher/releases/download/bootstrap/chess-bootstrap.jar");
-			PROPERTIES.putIfAbsent(BOOTSTRAP_MD5_URL, "https://github.com/muscaa/chess-launcher/releases/download/bootstrap/chess-bootstrap.md5");
+			PROPERTIES.putIfAbsent(BOOTSTRAP_JAR_URL, "https://github.com/muscaa/chess-launcher/releases/download/bootstrap/bootstrap.jar");
+			PROPERTIES.putIfAbsent(BOOTSTRAP_MD5_URL, "https://github.com/muscaa/chess-launcher/releases/download/bootstrap/bootstrap.md5");
 			PROPERTIES.putIfAbsent(INSTALL_DIR, "${user.home}/.chess/");
 			
 			if (empty) {
@@ -51,27 +52,35 @@ public class Main {
 			}
 			
 			File launcherDir = new File(getPropertyFormatted(INSTALL_DIR), "launcher");
-			File loaderJarFile = new File(launcherDir, "bootstrap.jar");
-			File loaderMd5File = new File(launcherDir, "bootstrap.md5");
+			File bootstrapJarFile = new File(launcherDir, "bootstrap.jar");
+			File bootstrapMd5File = new File(launcherDir, "bootstrap.md5");
 			
-			InputStream in = new URL(getPropertyFormatted(BOOTSTRAP_MD5_URL)).openStream();
-			String latestMd5 = new String(in.readAllBytes());
-			in.close();
+			String latestMd5 = getLatestMd5();
 			
-			if (loaderJarFile.exists() && loaderMd5File.exists()) {
-				String installedMd5 = Files.readString(loaderMd5File.toPath());
-				if (!latestMd5.equals(installedMd5)) {
-					download(loaderJarFile, loaderMd5File, latestMd5);
-				}
+			if (!bootstrapJarFile.exists() || !bootstrapMd5File.exists()) {
+				if (latestMd5 == null) throw new Exception("Failed to get bootstrap md5. Are you connected to the internet?");
+				
+				download(bootstrapJarFile, bootstrapMd5File, latestMd5);
 			} else {
-				download(loaderJarFile, loaderMd5File, latestMd5);
+				try {
+					if (latestMd5 == null) throw new Exception("Failed to get bootstrap md5. Are you connected to the internet?");
+					
+					String installedMd5 = Files.readString(bootstrapMd5File.toPath());
+					if (!latestMd5.equals(installedMd5)) {
+						download(bootstrapJarFile, bootstrapMd5File, latestMd5);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			
-			JarFile loaderJar = new JarFile(loaderJarFile);
-			String mainClassName = loaderJar.getManifest().getMainAttributes().getValue("Main-Class");
-			loaderJar.close();
+			System.out.println("Loading bootstrap jar...");
 			
-			LOADER = new URLClassLoader(new URL[] { loaderJarFile.toURI().toURL() }, Main.class.getClassLoader());
+			JarFile bootstrapJar = new JarFile(bootstrapJarFile);
+			String mainClassName = bootstrapJar.getManifest().getMainAttributes().getValue("Main-Class");
+			bootstrapJar.close();
+			
+			LOADER = new URLClassLoader(new URL[] { bootstrapJarFile.toURI().toURL() }, Main.class.getClassLoader());
 			Class<?> mainClass = LOADER.loadClass(mainClassName);
 			Method main = mainClass.getMethod("main", String[].class);
 			main.setAccessible(true);
@@ -79,25 +88,50 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 			
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-            
-            JOptionPane.showMessageDialog(null, sw.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+			if (!GraphicsEnvironment.isHeadless()) {
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+	            
+	            JOptionPane.showMessageDialog(null, sw.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+			
             System.exit(1);
 		}
 	}
 	
 	public static void download(File loaderJarFile, File loaderMd5File, String md5) throws Exception {
+		System.out.println("Downloading bootstrap jar...");
+		
 		loaderJarFile.getParentFile().mkdirs();
 		loaderMd5File.getParentFile().mkdirs();
 		
 		InputStream in = new URL(getPropertyFormatted(BOOTSTRAP_JAR_URL)).openStream();
 		FileOutputStream out = new FileOutputStream(loaderJarFile);
-		in.transferTo(out);
+        long transferred = 0;
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = in.read(buffer, 0, 8192)) >= 0) {
+            out.write(buffer, 0, read);
+            transferred += read;
+            
+            System.out.println(transferred);
+        }
 		out.close();
 		in.close();
 		
 		Files.writeString(loaderMd5File.toPath(), md5);
+	}
+	
+	public static String getLatestMd5() {
+		try {
+			InputStream in = new URL(getPropertyFormatted(BOOTSTRAP_MD5_URL)).openStream();
+			String latestMd5 = new String(in.readAllBytes());
+			in.close();
+			return latestMd5;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
     public static String getPropertyFormatted(String key) throws Exception {
