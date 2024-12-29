@@ -32,7 +32,7 @@ public class SetupV1 extends AbstractSetup {
 	public void install(SetupStages stages, Folder dir, Version version) throws VersionException {
 		stages.beginIndeterminate(StringUtils.format("Downloading ${}/bundle.zip...", version.getString()));
 		
-		InputStream in = http.GET(StringUtils.format("${}/client-bootstrap/${}/bundle.zip", VersionManager.URL, version.getString()))
+		InputStream in = http.GET(StringUtils.format("${}/client/${}/bundle.zip", VersionManager.URL, version.getString()))
 				.setTimeout(Duration.ofSeconds(3))
 				.setHead(VersionManager.HEAD)
 				.send()
@@ -40,8 +40,7 @@ public class SetupV1 extends AbstractSetup {
 				.getNoClose(HTTPBodyParser.INPUT_STREAM);
 		
 		try (ZipInputStream zipIn = new ZipInputStream(in)) {
-			int available = in.available();
-			stages.begin(null, available);
+			stages.begin(null, 1);
 			
 			ZipEntry entry;
 			while ((entry = zipIn.getNextEntry()) != null) {
@@ -56,26 +55,8 @@ public class SetupV1 extends AbstractSetup {
 					out.close();
 				}
 				zipIn.closeEntry();
-				
-				stages.progress(available - in.available());
 			}
-		} catch (IOException e) {
-			throw new VersionException(e);
-		}
-	}
-	
-	@Override
-	public void launch(SetupStages stages, Folder dir, Version version) throws VersionException {
-		File bootstrapFile = new File(dir, "client-bootstrap.jar");
-		if (!bootstrapFile.exists()) throw new VersionException("Version not installed!");
-		
-		stages.begin("Creating process...", 1);
-		ProcessBuilder pb = new ProcessBuilder()
-				.command("javaw", "-jar", bootstrapFile.getAbsolutePath())
-				.directory(FileUtils.dir);
-		
-		try {
-			pb.start();
+			
 			stages.progress(1);
 		} catch (IOException e) {
 			throw new VersionException(e);
@@ -83,9 +64,29 @@ public class SetupV1 extends AbstractSetup {
 	}
 	
 	@Override
+	public void launch(SetupStages stages, Folder dir, Version version) throws VersionException {
+		File[] files = dir.listFiles((file) -> file.getName().contains("bootstrap") && file.getName().endsWith(".jar"));
+		if (files.length != 1) throw new VersionException("Version not installed!");
+		
+		File bootstrapFile = files[0];
+		
+		stages.begin("Creating process...", 1);
+		ProcessBuilder pb = new ProcessBuilder()
+				.command("javaw", "-jar", "-Dbootstrap.entry=muscaa.chess.client.main.Main", bootstrapFile.getAbsolutePath())
+				.directory(FileUtils.dir);
+		
+		try {
+			pb.start();
+			stages.progress(1);
+		} catch (Exception e) {
+			throw new VersionException(e);
+		}
+	}
+	
+	@Override
 	public VersionStatus getStatus(Folder dir, Version version) throws VersionException {
-		File bootstrapFile = new File(dir, "client-bootstrap.jar");
-		if (!bootstrapFile.exists()) return VersionStatus.NOT_INSTALLED;
+		File[] files = dir.listFiles((file) -> file.getName().contains("bootstrap") && file.getName().endsWith(".jar"));
+		if (files.length != 1) return VersionStatus.NOT_INSTALLED;
 		
 		return VersionStatus.UP_TO_DATE;
 	}
