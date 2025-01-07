@@ -10,6 +10,7 @@ import javax.swing.JTabbedPane;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
+import muscaa.chess.launcher.gui.panels.tabs.SettingsPanel;
 import muscaa.chess.launcher.gui.panels.tabs.play.PlayPanel;
 
 public class TabsPanel extends JPanel {
@@ -23,8 +24,7 @@ public class TabsPanel extends JPanel {
 		
 		tabs = new JTabbedPane(JTabbedPane.LEFT, JTabbedPane.SCROLL_TAB_LAYOUT);
 		addTab("Play", new PlayPanel());
-		//addTab("Mods", new ModsPanel());
-		//addTab("Settings", new SettingsPanel());
+		addTab("Settings", new SettingsPanel());
 		
 		add(tabs, BorderLayout.CENTER);
 	}

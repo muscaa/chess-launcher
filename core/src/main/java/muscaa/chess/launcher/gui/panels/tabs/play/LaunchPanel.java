@@ -24,7 +24,7 @@ public class LaunchPanel extends JPanel {
 	private static final long serialVersionUID = 8959004286375243427L;
 	
 	private VersionsComboBoxModel versionsModel;
-	private JComboBox<Version> versions;
+	private JComboBox<Object> versions;
 	private JButton launch;
 	
 	private CardLayout progressLayout;
@@ -67,9 +67,13 @@ public class LaunchPanel extends JPanel {
 					}
 					v.launch(stages);
 					
+					Thread.sleep(100);
+					
 					show("empty");
 					stages.end();
 					launch.setEnabled(true);
+					
+					Thread.sleep(100);
 					
 					ChessLauncher.INSTANCE.stop();
 				} catch (Exception e1) {

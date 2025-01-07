@@ -1,6 +1,7 @@
 package muscaa.chess.launcher.gui.panels.tabs.play;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractListModel;
@@ -11,34 +12,82 @@ import muscaa.chess.launcher.version.Version;
 import muscaa.chess.launcher.version.VersionException;
 import muscaa.chess.launcher.version.VersionStatus;
 
-public class VersionsComboBoxModel extends AbstractListModel<Version> implements ComboBoxModel<Version> {
+public class VersionsComboBoxModel extends AbstractListModel<Object> implements ComboBoxModel<Object> {
 	
 	private static final long serialVersionUID = 8280553395275331123L;
 	
-	private final List<Version> versions = new ArrayList<>();
+	private final List<Object> elements = new ArrayList<>();
 	private Version selected;
 	private VersionStatus status;
 	
 	public VersionsComboBoxModel(boolean snapshots) {
-		for (Version v : ChessLauncher.INSTANCE.versions.getVersions()) {
-			if (!snapshots && v.isSnapshot()) continue;
-			
-			versions.add(v);
+		reload(snapshots);
+	}
+	
+	public void reload(boolean snapshots) {
+		elements.clear();
+		
+		ChessLauncher.INSTANCE.versions.getInstalled()
+				.thenAccept(list -> {
+					if (list.isEmpty()) return;
+					
+					synchronized (elements) {
+						elements.add("Installed:");
+						for (Version v : list) {
+							if (!snapshots && v.isSnapshot()) continue;
+							
+							elements.add(v);
+						}
+					}
+				});
+		
+		ChessLauncher.INSTANCE.versions.getAvailable()
+				.thenAccept(list -> {
+					if (list.isEmpty()) return;
+					
+					LinkedList<Version> installed = ChessLauncher.INSTANCE.versions.getInstalled().join();
+					
+					synchronized (elements) {
+						if (!installed.isEmpty()) elements.add("");
+						elements.add("Available:");
+						for (Version v : list) {
+							if (!snapshots && v.isSnapshot()) continue;
+							
+							elements.add(v);
+						}
+					}
+				});
+		
+		/*List<Version> installed = ChessLauncher.INSTANCE.versions.getInstalled();
+		if (!installed.isEmpty()) {
+			elements.add("Installed:");
+			for (Version v : installed) {
+				if (!snapshots && v.isSnapshot()) continue;
+				
+				elements.add(v);
+			}
 		}
 		
-		if (!versions.isEmpty()) {
-			setSelectedItem(versions.get(0));
-		}
+		List<Version> available = ChessLauncher.INSTANCE.versions.getAvailable();
+		if (!available.isEmpty()) {
+			elements.add("");
+			elements.add("Available:");
+			for (Version v : available) {
+				if (!snapshots && v.isSnapshot()) continue;
+				
+				elements.add(v);
+			}
+		}*/
 	}
 	
 	@Override
 	public int getSize() {
-		return versions.size();
+		return elements.size();
 	}
 	
 	@Override
-	public Version getElementAt(int index) {
-		return versions.get(index);
+	public Object getElementAt(int index) {
+		return elements.get(index);
 	}
 	
 	@Override
@@ -55,7 +104,7 @@ public class VersionsComboBoxModel extends AbstractListModel<Version> implements
 	
 	@Override
 	public Object getSelectedItem() {
-		return selected;
+		return selected == null ? "Select version..." : selected;
 	}
 	
 	public Version getVersion() {

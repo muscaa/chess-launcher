@@ -11,10 +11,20 @@ public class MarkdownPanel extends JPanel {
 	
 	private static final long serialVersionUID = 5025547644427219933L;
 	
-	public MarkdownPanel(String md) {
-		String html = Processor.process(md);
-		JEditorPane editor = new JEditorPane();
+	private final JEditorPane editor;
+	
+	public MarkdownPanel() {
+		editor = new JEditorPane();
 		editor.setContentType("text/html");
+		editor.setEditable(false);
+		
+		setLayout(new BorderLayout());
+		
+		add(editor, BorderLayout.CENTER);
+	}
+	
+	public void setMarkdown(String md) {
+		String html = Processor.process(md);
 		editor.setText("""
 				<html>
 		  			<head>
@@ -31,10 +41,5 @@ public class MarkdownPanel extends JPanel {
 		  			</body>
 		  		</html>
 				""");
-		editor.setEditable(false);
-		
-		setLayout(new BorderLayout());
-		
-		add(editor, BorderLayout.CENTER);
 	}
 }
