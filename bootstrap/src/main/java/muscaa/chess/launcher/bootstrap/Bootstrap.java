@@ -19,4 +19,12 @@ public abstract class Bootstrap {
 	public abstract String getLatest();
 	
 	public abstract String getInstalled();
+	
+	public abstract boolean isDebug();
+	
+	protected void debug(Object o) {
+		if (!isDebug()) return;
+		
+		System.out.println(o);
+	}
 }

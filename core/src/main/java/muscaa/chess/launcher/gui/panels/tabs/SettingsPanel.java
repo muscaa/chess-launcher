@@ -55,7 +55,6 @@ public class SettingsPanel extends JPanel {
 	
 	private void init() {
 		addWindowSettings();
-		addWindowSettings();
 	}
 	
 	private void addWindowSettings() {

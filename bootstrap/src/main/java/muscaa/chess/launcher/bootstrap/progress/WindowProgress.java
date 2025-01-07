@@ -4,10 +4,16 @@ import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 
+import muscaa.chess.launcher.bootstrap.Bootstrap;
+
 public class WindowProgress extends HeadlessProgress {
 	
 	private JFrame frame;
 	private JProgressBar progressBar;
+	
+	public WindowProgress(Bootstrap bootstrap) {
+		super(bootstrap);
+	}
 	
 	@Override
 	public void init(int stages) throws Exception {

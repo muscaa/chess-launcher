@@ -24,10 +24,13 @@ public class Main {
 	
 	public static final Properties PROPERTIES = new Properties();
 	
+	public static boolean DEBUG;
 	public static URLClassLoader LOADER;
 	
 	public static void main(String[] args) {
 		try {
+			DEBUG = args.length > 0 && args[0].equals("--debug");
+			
 			boolean empty = false;
 			File file = new File("chess-updater.properties");
 			if (file.exists()) {
@@ -37,8 +40,8 @@ public class Main {
 				
 				empty = PROPERTIES.isEmpty();
 			} else {
-				System.out.println("No chess-updater.properties file found. Using defaults.");
-				System.out.println("To dump the default properties, create an empty chess-updater.properties file.");
+				debug("No chess-updater.properties file found. Using defaults.");
+				debug("To dump the default properties, create an empty chess-updater.properties file.");
 			}
 			
 			PROPERTIES.putIfAbsent(BOOTSTRAP_JAR_URL, "https://github.com/muscaa/chess-launcher/releases/download/bootstrap/bootstrap.jar");
@@ -74,7 +77,7 @@ public class Main {
 				}
 			}
 			
-			System.out.println("Loading bootstrap jar...");
+			debug("Loading bootstrap jar...");
 			
 			JarFile bootstrapJar = new JarFile(bootstrapJarFile);
 			String mainClassName = bootstrapJar.getManifest().getMainAttributes().getValue("Main-Class");
@@ -100,7 +103,7 @@ public class Main {
 	}
 	
 	public static void download(File loaderJarFile, File loaderMd5File, String md5) throws Exception {
-		System.out.println("Downloading bootstrap jar...");
+		debug("Downloading bootstrap jar...");
 		
 		loaderJarFile.getParentFile().mkdirs();
 		loaderMd5File.getParentFile().mkdirs();
@@ -114,7 +117,7 @@ public class Main {
             out.write(buffer, 0, read);
             transferred += read;
             
-            System.out.println(transferred);
+            debug(transferred);
         }
 		out.close();
 		in.close();
@@ -165,5 +168,11 @@ public class Main {
             sb.append(dollar);
         }
         return sb.toString();
+    }
+    
+    public static void debug(Object o) {
+    	if (!DEBUG) return;
+    	
+    	System.out.println(o);
     }
 }

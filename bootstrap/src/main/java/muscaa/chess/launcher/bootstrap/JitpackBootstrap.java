@@ -13,6 +13,8 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -22,14 +24,19 @@ import muscaa.chess.launcher.bootstrap.progress.WindowProgress;
 
 public class JitpackBootstrap extends Bootstrap {
 	
-	private static final String LINE_SPLIT = "\n";
-	private static final String URL = "https://jitpack.io/com/github/muscaa/chess-launcher/";
+	private static final String USER = "muscaa";
+	private static final String REPOSITORY = "chess-launcher";
+	private static final String URL = "https://jitpack.io/com/github/" + USER + "/" + REPOSITORY;
+	private static final String API_URL = "https://jitpack.io/api/builds/com.github." + USER + "/" + REPOSITORY;
 	private static final String[] HEADERS = {
 			"User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.200 Mobile Safari/537.36"
 	};
 	private static final String VERSION_FILE = "version.txt";
 	private static final String MAIN_CLASS = "muscaa.chess.launcher.main.Main";
 	private static final String BUNDLE_FILE = "bundle.zip";
+	private static final Pattern VERSION_PATTERN = Pattern.compile("\"([0-9]+(\\.[0-9]+)+)\":\"ok\"");
+	
+	public boolean debug;
 	
 	@SuppressWarnings("resource")
 	public JitpackBootstrap() throws Exception {
@@ -48,8 +55,8 @@ public class JitpackBootstrap extends Bootstrap {
 			throw new Exception("Could not get latest version and no chess-launcher is installed. Are you connected to the internet?");
 		}
 		
-		System.out.println("Installed: " + installed);
-		System.out.println("Latest: " + latest);
+		debug("Installed: " + installed);
+		debug("Latest: " + latest);
 		
 		File versionFile = new File(dir, VERSION_FILE);
 		if (latest != null && (!latest.equals(installed) || !versionFile.exists())) {
@@ -70,20 +77,16 @@ public class JitpackBootstrap extends Bootstrap {
 	@Override
 	public String getLatest() {
 		try {
-			String[] versions = request(BodyHandlers.ofString(), true).body().split(LINE_SPLIT);
+			String json = request(API_URL, BodyHandlers.ofString(), true).body().replace(" ", "");
+			debug(json);
 			
-			for (int i = versions.length - 1; i >= 0; i--) {
-				String version = urlPath(versions[i]);
-				
-				String[] files = request(BodyHandlers.ofString(), true, version).body().split(LINE_SPLIT);
-				for (String file : files) {
-					String name = urlPath(file);
-					
-					if (name.equals(BUNDLE_FILE)) {
-						return version;
-					}
-				}
+	        Matcher matcher = VERSION_PATTERN.matcher(json);
+	        
+	        String latest = null;
+			while (matcher.find()) {
+				latest = matcher.group(1);
 			}
+			return latest;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -100,15 +103,20 @@ public class JitpackBootstrap extends Bootstrap {
 		return null;
 	}
 	
-	public static void download(File outDir, String version) throws Exception {
-		HttpResponse<InputStream> response = request(BodyHandlers.ofInputStream(), false, version, BUNDLE_FILE);
+	@Override
+	public boolean isDebug() {
+		return debug;
+	}
+	
+	public void download(File outDir, String version) throws Exception {
+		HttpResponse<InputStream> response = request(URL, BodyHandlers.ofInputStream(), false, version, BUNDLE_FILE);
 		
 		InputStream in = response.body();
 		
 		int total = Integer.parseInt(response.headers().firstValue("Content-Length").orElse("-1"));
-		System.out.println("Total bytes: " + total);
+		debug("Total bytes: " + total);
 		
-		IProgress progress = GraphicsEnvironment.isHeadless() ? new HeadlessProgress() : new WindowProgress();
+		IProgress progress = GraphicsEnvironment.isHeadless() ? new HeadlessProgress(this) : new WindowProgress(this);
 		progress.init(3);
 		
 		progress.update(1, "Deleting old files...");
@@ -147,10 +155,10 @@ public class JitpackBootstrap extends Bootstrap {
 		progress.end();
 	}
 	
-	public static <V> HttpResponse<V> request(BodyHandler<V> bodyHandler, boolean dir, String... path) throws Exception {
+	public <V> HttpResponse<V> request(String baseUrl, BodyHandler<V> bodyHandler, boolean dir, String... path) throws Exception {
 		int i = 0;
 		String[] url = new String[path.length + 1];
-		url[i++] = urlPath(URL);
+		url[i++] = urlPath(baseUrl);
 		for (String p : path) {
 			url[i++] = urlPath(p);
 		}
@@ -158,7 +166,7 @@ public class JitpackBootstrap extends Bootstrap {
 		URI uri = new URI(String.join("/", url) + (dir ? "/" : ""));
 		HttpRequest.Builder builder = HttpRequest.newBuilder()
 				  .uri(uri)
-				  .timeout(Duration.ofSeconds(3))
+				  .timeout(Duration.ofSeconds(5))
 				  .headers(HEADERS)
 				  .GET();
 		
@@ -169,7 +177,7 @@ public class JitpackBootstrap extends Bootstrap {
 		return response;
 	}
 	
-	public static String urlPath(String urlPath) {
+	public String urlPath(String urlPath) {
 		urlPath = urlPath.trim();
 		int i = 0;
 		int j = urlPath.length();
@@ -184,7 +192,7 @@ public class JitpackBootstrap extends Bootstrap {
 		return urlPath.isBlank() ? null : urlPath;
 	}
 	
-	public static void delete(File file) {
+	public void delete(File file) {
 		if (file.isDirectory()) {
 			for (File f : file.listFiles()) {
 				delete(f);

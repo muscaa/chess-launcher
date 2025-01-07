@@ -27,4 +27,9 @@ class DevBootstrap extends Bootstrap {
 	public String getInstalled() {
 		return "dev";
 	}
+	
+	@Override
+	public boolean isDebug() {
+		return true;
+	}
 }
