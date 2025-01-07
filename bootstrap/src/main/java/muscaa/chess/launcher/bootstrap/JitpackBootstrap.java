@@ -77,10 +77,10 @@ public class JitpackBootstrap extends Bootstrap {
 	@Override
 	public String getLatest() {
 		try {
-			String json = request(API_URL, BodyHandlers.ofString(), true).body().replace(" ", "");
+			String json = request(API_URL, BodyHandlers.ofString(), true).body();
 			debug(json);
 			
-	        Matcher matcher = VERSION_PATTERN.matcher(json);
+	        Matcher matcher = VERSION_PATTERN.matcher(json.replace(" ", ""));
 	        
 	        String latest = null;
 			while (matcher.find()) {
