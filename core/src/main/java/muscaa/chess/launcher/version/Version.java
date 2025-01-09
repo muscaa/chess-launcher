@@ -8,6 +8,7 @@ import fluff.core.utils.StringUtils;
 import fluff.files.Folder;
 import fluff.json.JSON;
 import fluff.json.JSONObject;
+import muscaa.chess.launcher.ChessLauncher;
 import muscaa.chess.launcher.utils.FileUtils;
 
 public class Version {
@@ -33,8 +34,17 @@ public class Version {
 		JSONObject json = JSON.object(FileUtils.read(versionFile).String());
 		
 		this.name = json.getString("name");
-		this.string = json.getString("string");
 		this.updateable = json.getBoolean("updateable");
+		if (updateable) {
+			Version latestStable = ChessLauncher.INSTANCE.versions.getLatestStable().join();
+			if (latestStable == null) {
+				this.string = json.getString("string");
+			} else {
+				this.string = latestStable.getString();
+			}
+		} else {
+			this.string = json.getString("string");
+		}
 		this.setup = setups.get(json.getString("setup"));
 		this.snapshot = string.contains("snapshot");
 		

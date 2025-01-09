@@ -35,6 +35,7 @@ public class VersionManager {
 	
 	private CompletableFuture<LinkedList<Version>> available;
 	private CompletableFuture<LinkedList<Version>> installed;
+	private CompletableFuture<Version> latestStable;
 	private CompletableFuture<String> news;
 	
 	public VersionManager() {
@@ -50,6 +51,7 @@ public class VersionManager {
 	}
 	
 	private void fetchAvailableVersions() {
+		latestStable = new CompletableFuture<>();
 		available = CompletableFuture.supplyAsync(() -> {
 			LinkedList<Version> list = new LinkedList<>();
 			
@@ -82,6 +84,8 @@ public class VersionManager {
 				if (latestStable != null) {
 					list.addFirst(new Version("latest", latestStable.getString(), true, latestStable.getSetup()));
 				}
+				
+				this.latestStable.complete(latestStable);
 			} catch (HTTPException e) {}
 			
 			return list;
@@ -125,6 +129,10 @@ public class VersionManager {
 	
 	public CompletableFuture<LinkedList<Version>> getInstalled() {
 		return installed;
+	}
+	
+	public CompletableFuture<Version> getLatestStable() {
+		return latestStable;
 	}
 	
 	public CompletableFuture<String> getNews() {

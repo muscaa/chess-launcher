@@ -27,57 +27,25 @@ public class VersionsComboBoxModel extends AbstractListModel<Object> implements 
 	public void reload(boolean snapshots) {
 		elements.clear();
 		
-		ChessLauncher.INSTANCE.versions.getInstalled()
-				.thenAccept(list -> {
-					if (list.isEmpty()) return;
-					
-					synchronized (elements) {
-						elements.add("Installed:");
-						for (Version v : list) {
-							if (!snapshots && v.isSnapshot()) continue;
-							
-							elements.add(v);
-						}
-					}
-				});
+		LinkedList<Version> installed = ChessLauncher.INSTANCE.versions.getInstalled().join();
+		LinkedList<Version> available = ChessLauncher.INSTANCE.versions.getAvailable().join();
 		
-		ChessLauncher.INSTANCE.versions.getAvailable()
-				.thenAccept(list -> {
-					if (list.isEmpty()) return;
-					
-					LinkedList<Version> installed = ChessLauncher.INSTANCE.versions.getInstalled().join();
-					
-					synchronized (elements) {
-						if (!installed.isEmpty()) elements.add("");
-						elements.add("Available:");
-						for (Version v : list) {
-							if (!snapshots && v.isSnapshot()) continue;
-							
-							elements.add(v);
-						}
-					}
-				});
-		
-		/*List<Version> installed = ChessLauncher.INSTANCE.versions.getInstalled();
-		if (!installed.isEmpty()) {
+		synchronized (elements) {
 			elements.add("Installed:");
 			for (Version v : installed) {
 				if (!snapshots && v.isSnapshot()) continue;
 				
 				elements.add(v);
 			}
-		}
-		
-		List<Version> available = ChessLauncher.INSTANCE.versions.getAvailable();
-		if (!available.isEmpty()) {
-			elements.add("");
+			
+			if (!installed.isEmpty()) elements.add("");
 			elements.add("Available:");
 			for (Version v : available) {
 				if (!snapshots && v.isSnapshot()) continue;
 				
 				elements.add(v);
 			}
-		}*/
+		}
 	}
 	
 	@Override
