@@ -72,7 +72,7 @@ public class SetupV1 extends AbstractSetup {
 		
 		stages.begin("Creating process...", 1);
 		ProcessBuilder pb = new ProcessBuilder()
-				.command("javaw", "-jar", "-Dbootstrap.entry=muscaa.chess.client.main.Main", bootstrapFile.getAbsolutePath())
+				.command("java", "-jar", "-Dbootstrap.entry=muscaa.chess.client.main.Main", bootstrapFile.getAbsolutePath())
 				.directory(FileUtils.dir);
 		
 		try {
